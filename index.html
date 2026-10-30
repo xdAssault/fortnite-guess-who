@@ -325,8 +325,8 @@
 
 ---
 
-### 🧩 Part 2: JavaScript Mechanics
-Paste this right below Part 1. It fetches data from the live API and processes character logic.
+### 🧩 Part 2: JavaScript Live Engine & Real Backup Grid
+Paste this directly below Part 1. This contains the setup logic and the fully fixed backup list of 12 real character card links.
 
 ```html
     <script>
@@ -383,10 +383,21 @@ Paste this right below Part 1. It fetches data from the live API and processes c
         }
 
         function fallbackToLocal() {
+            logAction("Using built-in offline archive cards...", "#fde01a");
+            
             SKINS_DATABASE = [
-                { id: 'fish', name: 'Fishstick', rarity: 'Rare', gender: 'male', hasMask: false, imgUrl: 'https://fortnite-api.com' },
-                { id: 'peely', name: 'Peely', rarity: 'Epic', gender: 'male', hasMask: false, imgUrl: 'https://fortnite-api.com' },
-                { id: 'drift', name: 'Drift', rarity: 'Legendary', gender: 'male', hasMask: true, imgUrl: 'https://fortnite-api.com' }
+                { id: 'fish', name: 'Fishstick', rarity: 'Rare', gender: 'male', hasMask: false, imgUrl: 'https://pages.dev' },
+                { id: 'peely', name: 'Peely', rarity: 'Epic', gender: 'male', hasMask: false, imgUrl: 'https://pages.dev' },
+                { id: 'drift', name: 'Drift', rarity: 'Legendary', gender: 'male', hasMask: true, imgUrl: 'https://pages.dev' },
+                { id: 'jonesy', name: 'Agent Jonesy', rarity: 'Uncommon', gender: 'male', hasMask: false, imgUrl: 'https://pages.dev' },
+                { id: 'cuddle', name: 'Cuddle Team Leader', rarity: 'Epic', gender: 'female', hasMask: true, imgUrl: 'https://pages.dev' },
+                { id: 'raptor', name: 'Raptor', rarity: 'Legendary', gender: 'male', hasMask: true, imgUrl: 'https://pages.dev' },
+                { id: 'brute', name: 'B.R.U.T.E. Gunner', rarity: 'Uncommon', gender: 'female', hasMask: true, imgUrl: 'https://pages.dev' },
+                { id: 'midas', name: 'Midas', rarity: 'Legendary', gender: 'male', hasMask: false, imgUrl: 'https://pages.dev' },
+                { id: 'ruby', name: 'Ruby', rarity: 'Rare', gender: 'female', hasMask: false, imgUrl: 'https://pages.dev' },
+                { id: 'bright', name: 'Brite Bomber', rarity: 'Rare', gender: 'female', hasMask: false, imgUrl: 'https://pages.dev' },
+                { id: 'raven', name: 'Raven', rarity: 'Epic', gender: 'male', hasMask: true, imgUrl: 'https://pages.dev' },
+                { id: 'aura', name: 'Aura', rarity: 'Uncommon', gender: 'female', hasMask: false, imgUrl: 'https://pages.dev' }
             ];
             initGameSession();
         }
