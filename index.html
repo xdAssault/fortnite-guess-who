@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortnite Guess Who - Live API Edition</title>
+    <style>
+        :root {
+            --fn-blue: #007bff;
+            --fn-yellow: #fde01a;
+            --fn-dark: #121212;
+            --fn-card-bg: #2a2a2a;
+            --legendary: #d3781b;
+            --epic: #b143e1;
+            --rare: #2cb3ef;
+            --uncommon: #5da81f;
+            --common: #bebebe;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Burbank Big Condensed', 'Arial Black', sans-serif;
+        }
+
+        body {
+            background-color: var(--fn-dark);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #111, #333);
+            padding: 15px 40px;
+            border: 4px solid var(--fn-yellow);
+            transform: skewX(-5deg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            text-transform: uppercase;
+            color: var(--fn-yellow);
+            text-shadow: 3px 3px 0px #000;
+            letter-spacing: 2px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1100px;
+            gap: 20px;
+        }
+
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            border-bottom: 4px solid var(--fn-blue);
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .secret-holder {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #111;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: 1px solid #444;
+        }
+
+        .secret-card-slot {
+            width: 70px;
+            height: 70px;
+            background: #252525;
+            border-radius: 6px;
+            border: 2px dashed var(--fn-yellow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, button {
+            padding: 10px 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        select {
+            background: #333;
+            color: white;
+            border: 2px solid #555;
+        }
+
+        button {
+            background: var(--fn-yellow);
+            color: #000;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        button:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            background: #181818;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            min-height: 400px;
+        }
+
+        .card-wrapper {
+            background-color: transparent;
+            height: 180px;
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-wrapper.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .card-front {
+            background-color: var(--fn-card-bg);
+            border: 3px solid #444;
+        }
+
+        .card-front[data-rarity="Legendary"] { border-color: var(--legendary); background: linear-gradient(180deg, #3a2307 0%, var(--fn-card-bg) 100%); }
+        .card-front[data-rarity="Epic"] { border-color: var(--epic); background: linear-gradient(180deg, #2d0c3a 0%, var(--fn-card-bg) 100%); }
+        .card-front[data-rarity="Rare"] { border-color: var(--rare); background: linear-gradient(180deg, #092c3e 0%, var(--fn-card-bg) 100%); }
+        .card-front[data-rarity="Uncommon"] { border-color: var(--uncommon); background: linear-gradient(180deg, #162f07 0%, var(--fn-card-bg) 100%); }
+        .card-front[data-rarity="Common"] { border-color: var(--common); background: linear-gradient(180deg, #222 0%, var(--fn-card-bg) 100%); }
+
+        .card-back {
+            background: linear-gradient(135deg, #222 25%, #111 25%, #111 50%, #222 50%, #222 75%, #111 75%, #111 100%);
+            background-size: 20px 20px;
+            border: 3px solid #222;
+            transform: rotateY(180deg);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-back::after {
+            content: "?";
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.15);
+            font-weight: bold;
+        }
+
+        .skin-img {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            flex-grow: 1;
+        }
+
+        .skin-name {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 5px;
+            background: rgba(0,0,0,0.75);
+            padding: 3px;
+            border-radius: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .game-log {
+            background: #111;
+            padding: 15px;
+            border-radius: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: monospace;
+            color: #0df;
+            border-left: 4px solid #0df;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #222;
+            padding: 40px;
+            border-radius: 12px;
+            border: 5px solid var(--fn-yellow);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .win h2 { color: var(--fn-yellow); }
+        .lose h2 { color: #ff3333; }
+
+        .modal p {
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+        
+        .loading-text {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--fn-yellow);
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Fortnite Guess Who</h1>
+    </header>
+
+    <div class="game-container">
+        <div class="dashboard">
+            <div class="secret-holder">
+                <span>Your Card:</span>
+                <div class="secret-card-slot" id="playerSecretSlot"></div>
+                <button onclick="revealSecretObjective()" style="padding:5px 10px; font-size:0.8rem;">Show/Hide</button>
+            </div>
+
+            <div class="controls">
+                <select id="traitSelector">
+                    <optgroup label="Rarity">
+                        <option value="rarity:Legendary">Is Legendary Rarity</option>
+                        <option value="rarity:Epic">Is Epic Rarity</option>
+                        <option value="rarity:Rare">Is Rare Rarity</option>
+                        <option value="rarity:Uncommon">Is Uncommon Rarity</option>
+                    </optgroup>
+                    <optgroup label="Mask / Helmet / Suit">
+                        <option value="hasMask:true">Wearing Mask/Helmet</option>
+                        <option value="hasMask:false">No Mask/Helmet</option>
+                    </optgroup>
+                    <optgroup label="Character Gender Clue">
+                        <option value="gender:female">Is Female Appearance</option>
+                        <option value="gender:male">Is Male Appearance</option>
+                    </optgroup>
+                </select>
+                <button id="askBtn" onclick="askQuestion()">Ask AI</button>
+                <button onclick="triggerGuessMode()" style="background:#ff3333; color:white;">Guess Character</button>
+                <button onclick="resetGame()" style="background:#5da81f; color:white;">Reset</button>
+            </div>
+        </div>
+
+        <div class="board" id="gameBoard">
+            <div class="loading-text">Connecting to Battle Royale Databanks...</div>
+        </div>
+
+        <div class="game-log" id="gameLog">
+
+---
+
+### 🧩 Part 2: JavaScript Mechanics
+Paste this right below Part 1. It fetches data from the live API and processes character logic.
+
+```html
+    <script>
+        let SKINS_DATABASE = [];
+        let computerSecretCharacter = null;
+        let playerSecretCharacter = null;
+        let isGuessModeActive = false;
+        let hidePlayerSecretState = true;
+
+        async function fetchLiveSkins() {
+            try {
+                logAction("Fetching active outfits from Fortnite-API.com...");
+                const response = await fetch('https://fortnite-api.com');
+                const result = await response.json();
+                
+                if (!result.data || result.data.length === 0) throw new Error("API array empty");
+                
+                const fullList = result.data.filter(s => s.images && s.images.icon);
+                const shuffled = fullList.sort(() => 0.5 - Math.random());
+                const selectedSkins = shuffled.slice(0, 16);
+                
+                SKINS_DATABASE = selectedSkins.map(skin => {
+                    const desc = (skin.description || "").toLowerCase();
+                    const name = (skin.name || "").toLowerCase();
+                    
+                    let inferredGender = "male"; 
+                    if(desc.includes("she") || desc.includes("her") || name.includes("goddess") || name.includes("queen") || name.includes("lady")) {
+                        inferredGender = "female";
+                    }
+                    
+                    let hasMask = false;
+                    if(desc.includes("masked") || desc.includes("helmet") || desc.includes("suit") || desc.includes("faceless") || desc.includes("shrouded")) {
+                        hasMask = true;
+                    }
+
+                    return {
+                        id: skin.id,
+                        name: skin.name,
+                        rarity: skin.rarity ? skin.rarity.value : 'Common',
+                        gender: inferredGender,
+                        hasMask: hasMask,
+                        imgUrl: skin.images.icon
+                    };
+                });
+
+                logAction(`Successfully generated board data with ${SKINS_DATABASE.length} skins!`, '#5da81f');
+                initGameSession();
+                
+            } catch (err) {
+                console.error(err);
+                logAction("Failed to fetch live API data. Reverting to backup mode...", "#ff3333");
+                fallbackToLocal();
+            }
+        }
+
+        function fallbackToLocal() {
+            SKINS_DATABASE = [
+                { id: 'fish', name: 'Fishstick', rarity: 'Rare', gender: 'male', hasMask: false, imgUrl: 'https://fortnite-api.com' },
+                { id: 'peely', name: 'Peely', rarity: 'Epic', gender: 'male', hasMask: false, imgUrl: 'https://fortnite-api.com' },
+                { id: 'drift', name: 'Drift', rarity: 'Legendary', gender: 'male', hasMask: true, imgUrl: 'https://fortnite-api.com' }
+            ];
+            initGameSession();
+        }
+
+        function initGameSession() {
+            isGuessModeActive = false;
+            hidePlayerSecretState = true;
+            document.getElementById('askBtn').disabled = false;
+            
+            computerSecretCharacter = SKINS_DATABASE[Math.floor(Math.random() * SKINS_DATABASE.length)];
+            playerSecretCharacter = SKINS_DATABASE[Math.floor(Math.random() * SKINS_DATABASE.length)];
+            
+            renderBoard();
+            updatePlayerSecretDisplay();
+            logAction("Match started! Ask clues or narrow down the suspects.");
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+
+            SKINS_DATABASE.forEach(skin => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'card-wrapper';
+                wrapper.id = `wrap-${skin.id}`;
+                wrapper.onclick = () => handleCardClick(skin);
+
+                wrapper.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front" data-rarity="${skin.rarity}">
+                            <img src="${skin.imgUrl}" class="skin-img" alt="${skin.name}" loading="lazy">
+                            <div class="skin-name">${skin.name}</div>
+                        </div>
+                        <div class="card-back"></div>
+                    </div>
+                `;
+                board.appendChild(wrapper);
+            });
+        }        function updatePlayerSecretDisplay() {
+            const slot = document.getElementById('playerSecretSlot');
+            if (hidePlayerSecretState) {
+                slot.innerHTML = `<span style="font-size:1.8rem; color:#666">?</span>`;
+                slot.style.background = "#252525";
+            } else {
+                slot.innerHTML = `<img src="${playerSecretCharacter.imgUrl}" style="width:100%; height:100%; object-fit:contain;">`;
+                slot.style.background = "var(--fn-blue)";
+            }
+        }
+
+        function revealSecretObjective() {
+            hidePlayerSecretState = !hidePlayerSecretState;
+            updatePlayerSecretDisplay();
+        }
+
+        function handleCardClick(skin) {
+            const wrapper = document.getElementById(`wrap-${skin.id}`);
+            if (isGuessModeActive) {
+                processFinalGuess(skin);
+            } else {
+                wrapper.classList.toggle('flipped');
+                logAction(`Manually toggled ${skin.name}`);
+            }
+        }
+
+        function askQuestion() {
+            const selector = document.getElementById('traitSelector');
+            const [property, expectedValue] = selector.value.split(':');
+            
+            const actualValue = computerSecretCharacter[property].toString();
+            const matchesClue = (actualValue === expectedValue);
+
+            logAction(`Asked: ${selector.options[selector.selectedIndex].text}`);
+            
+            if (matchesClue) {
+                logAction(`AI Responds: YES!`, '#5da81f');
+            } else {
+                logAction(`AI Responds: NO!`, '#ff3333');
+            }
+
+            SKINS_DATABASE.forEach(skin => {
+                const wrapper = document.getElementById(`wrap-${skin.id}`);
+                const skinValue = skin[property].toString();
+                
+                if ((matchesClue && skinValue !== expectedValue) || (!matchesClue && skinValue === expectedValue)) {
+                    if (!wrapper.classList.contains('flipped')) {
+                        wrapper.classList.add('flipped');
+                    }
+                }
+            });
+        }
+
+        function triggerGuessMode() {
+            isGuessModeActive = true;
+            logAction("GUESS MODE ACTIVE! Choose a card for final verification!", "var(--fn-yellow)");
+        }
+
+        function processFinalGuess(guessedSkin) {
+            const modal = document.getElementById('gameModal');
+            const content = document.getElementById('modalContent');
+            
+            if (guessedSkin.id === computerSecretCharacter.id) {
+                modal.className = "modal win";
+                content.innerHTML = `
+                    <h2>Victory Royale!</h2>
+                    <p>Incredible deduction! The opponent's secret skin was <strong>${computerSecretCharacter.name}</strong>!</p>
+                    <button onclick="closeModalAndReset()">Play Again</button>
+                `;
+            } else {
+                modal.className = "modal lose";
+                content.innerHTML = `
+                    <h2>Defeat!</h2>
+                    <p>Incorrect asset target. The opponent's target character was actually <strong>${computerSecretCharacter.name}</strong>.</p>
+                    <button onclick="closeModalAndReset()">Try Again</button>
+                `;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeModalAndReset() {
+            document.getElementById('gameModal').style.display = 'none';
+            fetchLiveSkins();
+        }
+
+        function resetGame() {
+            fetchLiveSkins();
+        }
+
+        function logAction(msg, color = '#0df') {
+            const log = document.getElementById('gameLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = color;
+            entry.innerText = `> ${msg}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        window.onload = fetchLiveSkins;
+    </script>
+</body>
+</html>
